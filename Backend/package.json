@@ -16,6 +16,7 @@
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.4.4",
+    "nanoid": "^5.0.7",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.5.3"
   },
