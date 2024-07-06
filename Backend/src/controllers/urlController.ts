@@ -1,6 +1,15 @@
 import {Request, Response} from "express"
 import {ShortenedUrl} from "../models/ShortenedUrl"
-import {nanoid} from "nanoid"
+import {v4 as uuidv4} from "uuid"
+import {IUser} from "../models/User"
+
+declare global {
+	namespace Express {
+		interface Request {
+			user?: IUser
+		}
+	}
+}
 
 export const createShortenedUrl = async (req: Request, res: Response) => {
 	const {originalUrl} = req.body
@@ -10,14 +19,17 @@ export const createShortenedUrl = async (req: Request, res: Response) => {
 		return res.status(401).json({message: "Unauthorized"})
 	}
 
+	const generatedId = uuidv4().split("-")[0]
+
 	const shortUrl = new ShortenedUrl({
 		originalUrl,
-		shortUrl: nanoid(10),
+		shortUrl: generatedId,
 		userId: user._id,
 	})
 
 	await shortUrl.save()
-	res.status(201).json(shortUrl)
+
+	return res.status(201).json(shortUrl)
 }
 
 export const getUrls = async (req: Request, res: Response) => {
@@ -28,7 +40,7 @@ export const getUrls = async (req: Request, res: Response) => {
 	}
 
 	const urls = await ShortenedUrl.find({userId: user._id})
-	res.status(200).json(urls)
+	return res.status(200).json(urls)
 }
 
 export const deleteUrl = async (req: Request, res: Response) => {
@@ -45,5 +57,5 @@ export const deleteUrl = async (req: Request, res: Response) => {
 		return res.status(404).json({message: "URL not found"})
 	}
 
-	res.status(200).json({message: "URL deleted"})
+	return res.status(200).json({message: "URL deleted"})
 }

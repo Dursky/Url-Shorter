@@ -22,9 +22,9 @@ export const register = async (req: Request, res: Response) => {
 		const payload = {id: user.id}
 		const token = jwt.sign(payload, process.env.JWT_SECRET!, {expiresIn: "1h"})
 
-		res.status(201).json({token})
+		return res.status(201).json({token})
 	} catch (err) {
-		res.status(500).json({message: "Server error"})
+		return res.status(500).json({message: "Server error"})
 	}
 }
 
@@ -49,8 +49,8 @@ export const login = async (req: Request, res: Response) => {
 		const payload = {id: user.id}
 		const token = jwt.sign(payload, process.env.JWT_SECRET!, {expiresIn: "1h"})
 
-		res.json({token})
+		return res.json({token})
 	} catch (err) {
-		res.status(500).json({message: "Server error"})
+		return res.status(500).json({message: "Server error"})
 	}
 }
