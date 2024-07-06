@@ -1,30 +1,35 @@
 import {Request, Response} from "express"
 import jwt from "jsonwebtoken"
 import {User} from "../models/User"
-import Joi from "joi"
 import {registerSchema, loginSchema} from "../validation/auth"
+import mongoose from "mongoose"
 
 export const register = async (req: Request, res: Response) => {
 	try {
-		const {error} = registerSchema.validate(req.body)
-		if (error) return res.status(400).json({message: error.details[0].message})
-
 		const {email, password} = req.body
 
-		let user = await User.findOne({email})
-		if (user) {
+		const {error} = registerSchema.validate(req.body)
+
+		if (error) return res.status(400).json({message: error.details[0].message})
+
+		const existingUser = await User.findOne({email})
+		if (existingUser) {
 			return res.status(400).json({message: "User already exists"})
 		}
 
-		user = new User({email, password})
-		await user.save()
+		const newUser = new User({email, password: password})
+		await newUser.save()
 
-		const payload = {id: user.id}
-		const token = jwt.sign(payload, process.env.JWT_SECRET!, {expiresIn: "1h"})
+		const token = jwt.sign({id: newUser._id}, process.env.JWT_SECRET!, {expiresIn: "1h"})
 
-		return res.status(201).json({token})
+		res.status(201).json({token})
 	} catch (err) {
-		return res.status(500).json({message: "Server error"})
+		if (err instanceof mongoose.Error.ValidationError) {
+			return res.status(400).json({message: "Validation error", details: err.errors})
+		}
+
+		console.error(err)
+		res.status(500).json({message: "Server error"})
 	}
 }
 
@@ -37,13 +42,14 @@ export const login = async (req: Request, res: Response) => {
 		const {email, password} = req.body
 
 		const user = await User.findOne({email})
+
 		if (!user) {
-			return res.status(400).json({message: "Invalid credentials"})
+			return res.status(404).json({message: "User not found"})
 		}
 
 		const isMatch = await user.comparePassword(password)
 		if (!isMatch) {
-			return res.status(400).json({message: "Invalid credentials"})
+			return res.status(401).json({message: "Invalid credentials"})
 		}
 
 		const payload = {id: user.id}
