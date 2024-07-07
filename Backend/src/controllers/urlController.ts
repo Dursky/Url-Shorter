@@ -14,11 +14,19 @@ declare global {
 export const createShortenedUrl = async (req: Request, res: Response) => {
 	try {
 		const {originalUrl} = req.body
-
 		const user = req.user
 
 		if (!user) {
 			return res.status(401).json({message: "Unauthorized"})
+		}
+
+		const existingShortUrl = await ShortenedUrl.findOne({originalUrl})
+		if (existingShortUrl) {
+			const url = `http://${process.env.SERVER_ADDRESS}/short/${existingShortUrl.shortUrl}`
+			return res.status(200).json({
+				originalUrl,
+				shorted: url,
+			})
 		}
 
 		const generatedId = uuidv4().split("-")[0]

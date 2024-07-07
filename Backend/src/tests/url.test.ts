@@ -56,23 +56,38 @@ describe("URL Shortener API", () => {
 
 		expect(response.status).toBe(404)
 	})
-	/*
-	it("should duplicate a URL with the same alias", async () => {
+
+	it("should have the same short URL if trying to duplicate URL", async () => {
+		const user = new User({email: testEmail, password: testPassword})
+		await user.save()
+
+		const loginResponse = await request(app)
+			.post("/api/auth/login")
+			.send({email: testEmail, password: testPassword})
+
 		const response1 = await request(app)
-			.post("/api/url/shorten")
-			.set("Authorization", `Bearer ${authToken}`)
-			.send({originalUrl: "https://example.com/test", alias: "test"})
+			.post("/api/url")
+			.set("Authorization", `Bearer ${loginResponse.body.token}`)
+			.send({
+				originalUrl: "https://example.com/test",
+			})
 
 		const response2 = await request(app)
-			.post("/api/url/shorten")
-			.set("Authorization", `Bearer ${authToken}`)
-			.send({originalUrl: "https://example.com/another", alias: "test"})
+			.post("/api/url")
+			.set("Authorization", `Bearer ${loginResponse.body.token}`)
+			.send({originalUrl: "https://example.com/test"})
+
+		expect(response1.status).toBe(200)
+		expect(response1.body).toHaveProperty("originalUrl")
+		expect(response1.body).toHaveProperty("shorted")
 
 		expect(response2.status).toBe(200)
-		expect(response2.body).toHaveProperty("shortUrl")
-		expect(response2.body.alias).toBe("test")
+		expect(response2.body).toHaveProperty("originalUrl")
+		expect(response2.body).toHaveProperty("shorted")
+
+		expect(response1.body.shorted).toBe(response2.body.shorted)
 	})
-  */
+
 	it("should return 401 when unauthorized user tries to shorten URL", async () => {
 		const response = await request(app)
 			.post("/api/url")
