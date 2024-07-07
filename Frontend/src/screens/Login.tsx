@@ -1,7 +1,7 @@
 import React from "react"
 import {useMutation} from "@tanstack/react-query"
 import {login, setAuthToken} from "../api"
-import {useNavigate} from "react-router-dom"
+import {useLocation, useNavigate} from "react-router-dom"
 import LoginForm, {LoginFormData} from "../components/LoginForm"
 
 interface LoginResponse {
@@ -10,12 +10,15 @@ interface LoginResponse {
 
 const LoginScreen: React.FC = () => {
 	const navigate = useNavigate()
+	const location = useLocation()
 
 	const loginMutation = useMutation<LoginResponse, Error, LoginFormData>({
 		mutationFn: ({email, password}) => login(email, password),
 		onSuccess: (data) => {
 			setAuthToken(data.token)
-			navigate("/shorten")
+			localStorage.setItem("token", data.token) // Zapisz token w localStorage
+			const origin = (location.state as any)?.from?.pathname || "/shorten"
+			navigate(origin)
 		},
 	})
 

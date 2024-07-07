@@ -57,7 +57,7 @@ export const createShortenedUrl = async (req: Request, res: Response) => {
 
 		await shortUrl.save()
 
-		const url = `http://${process.env.SERVER_ADDRESS}/short/${generatedId}`
+		const url = `http://${process.env.SERVER_ADDRESS}:${process.env.PORT}/short/${generatedId}`
 
 		return res.status(200).json({
 			originalUrl,

@@ -7,6 +7,7 @@ import Home from "./screens/Home"
 import LoginScreen from "./screens/Login"
 import RegisterScreen from "./screens/Register"
 import Navbar from "./components/Navbar"
+import ProtectedRoute from "./components/ProtectedRoute"
 
 const queryClient = new QueryClient()
 
@@ -20,7 +21,14 @@ function App() {
 						<Route path="/" element={<Home />} />
 						<Route path="/login" element={<LoginScreen />} />
 						<Route path="/register" element={<RegisterScreen />} />
-						<Route path="/shorten" element={<UrlShortener />} />
+						<Route
+							path="/shorten"
+							element={
+								<ProtectedRoute>
+									<UrlShortener />
+								</ProtectedRoute>
+							}
+						/>
 						<Route path="/stats/:shortUrl" element={<UrlStats />} />
 					</Routes>
 				</div>
