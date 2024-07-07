@@ -72,13 +72,12 @@ describe("URL Shortener API", () => {
 		expect(response2.body).toHaveProperty("shortUrl")
 		expect(response2.body.alias).toBe("test")
 	})
-
+  */
 	it("should return 401 when unauthorized user tries to shorten URL", async () => {
 		const response = await request(app)
-			.post("/api/url/shorten")
+			.post("/api/url")
 			.send({originalUrl: "https://example.com/test"})
 
 		expect(response.status).toBe(401)
 	})
-        */
 })
