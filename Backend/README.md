@@ -94,6 +94,25 @@ Code: 404
 Content: Not Found
 ```
 
+### Redirect to original URL
+
+- **URL:** `/short/:shortId`
+- **Method: GET**
+- **URL Params:** `shortId=[string]`
+  Success Response:
+
+```json
+Code: 302
+Headers: { Location: "original_url_here" }
+```
+
+Error Response:
+
+```json
+Code: 404
+Content: { "message": "Shortened URL not found" }
+```
+
 ### **Notes**
 
 - All endpoints except for registration and login require authentication.
