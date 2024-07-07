@@ -1,16 +1,19 @@
 import request from "supertest"
 import app from "../index"
-import mongoose, {mongo} from "mongoose"
+import mongoose from "mongoose"
+import {MongoMemoryServer} from "mongodb-memory-server"
 import {User} from "../models/User"
 
 describe("Auth Endpoints", () => {
 	const testEmail = "test@example.com"
 	const testPassword = "password123"
+	let mongoServer: MongoMemoryServer
 
 	beforeAll(async () => {
-		await mongoose.connect(process.env.MONGO_URI!)
+		mongoServer = await MongoMemoryServer.create()
+		const uri = mongoServer.getUri()
 
-		await mongoose.connection.dropDatabase()
+		await mongoose.connect(uri)
 	})
 
 	beforeEach(async () => {
@@ -22,7 +25,9 @@ describe("Auth Endpoints", () => {
 	})
 
 	afterAll(async () => {
+		await mongoose.connection.dropDatabase()
 		await mongoose.connection.close()
+		await mongoServer.stop()
 	})
 
 	it("should register a new user", async () => {
