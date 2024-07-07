@@ -46,11 +46,11 @@ Make sure you have the following installed:
 
 1. Clone the repository:
    ```sh
-   git clone https://github.com/yourusername/url-shorter.git
+   git clone https://github.com/Dursky/Url-Shorter
    ```
 2. Navigate to the backend directory:
    ```sh
-   cd url-shorter/backend
+   cd Url-Shorter/Backend
    ```
 3. Install dependencies:
    ```sh
@@ -60,7 +60,13 @@ Make sure you have the following installed:
    ```env
    MONGODB_URI=your_mongodb_uri
    ```
-5. Start the backend server:
+5. Start database:
+
+   ```sh
+   docker compose up -d
+   ```
+
+6. Start the backend server:
    ```sh
    npm start
    ```
@@ -69,7 +75,7 @@ Make sure you have the following installed:
 
 1. Navigate to the frontend directory:
    ```sh
-   cd ../frontend
+   cd ../Frontend
    ```
 2. Install dependencies:
    ```sh
