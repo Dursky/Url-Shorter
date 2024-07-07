@@ -1,0 +1,19 @@
+version: "3.8"
+services:
+  mongo:
+    image: mongo
+    container_name: database-dev
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+  backend:
+    build: .
+    container_name: backend-dev
+    ports:
+      - "3000:3000"
+    env_file: .env
+    depends_on:
+      - mongo
+volumes:
+  mongo-data:
