@@ -4,6 +4,7 @@ import mongoose from "mongoose"
 import {MongoMemoryServer} from "mongodb-memory-server"
 import {User} from "../models/User"
 import {ShortenedUrl} from "../models/ShortenedUrl"
+import {UrlStats} from "../models/UrlStats"
 
 describe("URL Shortener API", () => {
 	let authToken: string
@@ -110,7 +111,60 @@ describe("URL Shortener API", () => {
 
 		const response = await request(app).get("/short/testshort")
 
-		expect(response.status).toBe(302) // 302 to kod statusu dla przekierowania
+		expect(response.status).toBe(302)
 		expect(response.header.location).toBe("https://example.com/test")
+	})
+
+	// STATISTICS
+	it("should update statistics when accessing a shortened URL", async () => {
+		const user = new User({email: testEmail, password: testPassword})
+		await user.save()
+
+		const shortUrl = new ShortenedUrl({
+			originalUrl: "https://example.com/test",
+			shortUrl: "testshort",
+			userId: user._id,
+		})
+		await shortUrl.save()
+
+		// First visit
+		await request(app).get("/short/testshort")
+
+		// Second visit
+		await request(app).get("/short/testshort")
+
+		const stats = await UrlStats.findOne({shortUrl: "testshort"})
+		expect(stats).toBeDefined()
+		expect(stats?.visits).toBe(2)
+		expect(stats?.uniqueVisitors).toBe(1)
+	})
+
+	it("should return correct statistics for a shortened URL", async () => {
+		const user = new User({email: testEmail, password: testPassword})
+		await user.save()
+
+		const loginResponse = await request(app)
+			.post("/api/auth/login")
+			.send({email: testEmail, password: testPassword})
+
+		const shortUrl = new ShortenedUrl({
+			originalUrl: "https://example.com/test",
+			shortUrl: "testshort",
+			userId: user._id,
+		})
+		await shortUrl.save()
+
+		// Simulate some visits
+		await request(app).get("/short/testshort")
+		await request(app).get("/short/testshort")
+
+		const response = await request(app)
+			.get("/api/url/stats/testshort")
+			.set("Authorization", `Bearer ${loginResponse.body.token}`)
+
+		expect(response.status).toBe(200)
+		expect(response.body).toHaveProperty("visits", 2)
+		expect(response.body).toHaveProperty("uniqueVisitors", 1)
+		expect(response.body).toHaveProperty("lastVisited")
 	})
 })

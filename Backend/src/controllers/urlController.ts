@@ -2,6 +2,7 @@ import {Request, Response} from "express"
 import {ShortenedUrl} from "../models/ShortenedUrl"
 import {v4 as uuidv4} from "uuid"
 import {IUser} from "../models/User"
+import {UrlStats} from "../models/UrlStats"
 
 declare global {
 	namespace Express {
@@ -9,6 +10,23 @@ declare global {
 			user?: IUser
 		}
 	}
+}
+export const updateUrlStats = async (shortUrl: string, ip: string) => {
+	let stats = await UrlStats.findOne({shortUrl})
+
+	if (!stats) {
+		stats = new UrlStats({shortUrl})
+	}
+
+	stats.visits += 1
+	stats.lastVisited = new Date()
+
+	if (!stats.visitorIPs.includes(ip)) {
+		stats.uniqueVisitors += 1
+		stats.visitorIPs.push(ip)
+	}
+
+	await stats.save()
 }
 
 export const createShortenedUrl = async (req: Request, res: Response) => {
@@ -99,7 +117,29 @@ export const redirectToOriginalUrl = async (req: Request, res: Response) => {
 			return res.status(404).json({message: "Shortened URL not found"})
 		}
 
+		if (req.ip) await updateUrlStats(shortId, req.ip)
+
 		return res.status(200).redirect(shortUrl.originalUrl)
+	} catch (err) {
+		console.error(err)
+		return res.status(500).json({message: "Server error"})
+	}
+}
+
+export const getUrlStats = async (req: Request, res: Response) => {
+	try {
+		const {shortUrl} = req.params
+		const stats = await UrlStats.findOne({shortUrl})
+
+		if (!stats) {
+			return res.status(404).json({message: "Stats not found for this URL"})
+		}
+
+		return res.status(200).json({
+			visits: stats.visits,
+			uniqueVisitors: stats.uniqueVisitors,
+			lastVisited: stats.lastVisited,
+		})
 	} catch (err) {
 		console.error(err)
 		return res.status(500).json({message: "Server error"})
