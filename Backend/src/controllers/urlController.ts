@@ -88,3 +88,20 @@ export const deleteUrl = async (req: Request, res: Response) => {
 		return res.status(500).json({message: "Server error"})
 	}
 }
+
+export const redirectToOriginalUrl = async (req: Request, res: Response) => {
+	try {
+		const {shortId} = req.params
+
+		const shortUrl = await ShortenedUrl.findOne({shortUrl: shortId})
+
+		if (!shortUrl) {
+			return res.status(404).json({message: "Shortened URL not found"})
+		}
+
+		return res.status(200).redirect(shortUrl.originalUrl)
+	} catch (err) {
+		console.error(err)
+		return res.status(500).json({message: "Server error"})
+	}
+}

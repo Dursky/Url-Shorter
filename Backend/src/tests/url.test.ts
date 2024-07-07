@@ -3,6 +3,7 @@ import app from "../index"
 import mongoose from "mongoose"
 import {MongoMemoryServer} from "mongodb-memory-server"
 import {User} from "../models/User"
+import {ShortenedUrl} from "../models/ShortenedUrl"
 
 describe("URL Shortener API", () => {
 	let authToken: string
@@ -94,5 +95,22 @@ describe("URL Shortener API", () => {
 			.send({originalUrl: "https://example.com/test"})
 
 		expect(response.status).toBe(401)
+	})
+
+	it("should redirect to the original URL when accessing a valid short URL", async () => {
+		const user = new User({email: testEmail, password: testPassword})
+		await user.save()
+
+		const shortUrl = new ShortenedUrl({
+			originalUrl: "https://example.com/test",
+			shortUrl: "testshort",
+			userId: user._id,
+		})
+		await shortUrl.save()
+
+		const response = await request(app).get("/short/testshort")
+
+		expect(response.status).toBe(302) // 302 to kod statusu dla przekierowania
+		expect(response.header.location).toBe("https://example.com/test")
 	})
 })
